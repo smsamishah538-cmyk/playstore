@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon App Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary-glow: rgba(0, 255, 255, 0.7); }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Poppins', sans-serif; background-color: #0e0e0e; color: #f0f0f0; background-image: radial-gradient(circle at top left, rgba(159, 0, 255, 0.2), transparent 30%), radial-gradient(circle at bottom right, rgba(0, 255, 255, 0.2), transparent 30%); background-attachment: fixed; min-height: 100vh; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 1rem; }
+        .glass-box { background: rgba(20, 20, 30, 0.5); backdrop-filter: blur(12px); border-radius: 25px; border: 1px solid rgba(255, 255, 255, 0.2); padding: 2rem; }
+        h1, h2 { font-weight: 700; background: linear-gradient(90deg, #ff00ff, #9f00ff, #00ffff); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+        .btn { padding: 10px 25px; border-radius: 50px; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; font-weight: 700; font-size: 1rem; border: none; display: inline-block; text-align: center; }
+        .btn:hover { transform: scale(1.05); }
+        .btn-solid { background: linear-gradient(90deg, #9f00ff, #ff00ff); color: white; box-shadow: 0 0 10px rgba(255, 0, 255, 0.3); }
+        input, textarea, select { width: 100%; padding: 12px; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 15px; color: #f0f0f0; font-family: 'Poppins', sans-serif; margin-bottom: 1rem; }
+        textarea { min-height: 200px; resize: vertical; }
+        .main-header { display: flex; align-items: center; justify-content: space-between; padding: 1rem; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+        .menu-icon { font-size: 2rem; cursor: pointer; }
+        #side-menu { position: fixed; top: 0; left: -300px; width: 300px; height: 100%; z-index: 1000; transition: left 0.3s ease-in-out; padding-top: 60px; }
+        #side-menu.open { left: 0; }
+        #side-menu .close-btn { position: absolute; top: 15px; right: 25px; font-size: 2.5rem; cursor: pointer; }
+        #side-menu nav a { display: block; color: white; text-decoration: none; font-size: 1.2rem; padding: 15px 30px; }
+        #menu-backdrop { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 999; }
+        #menu-backdrop.visible { display: block; }
+        .view { display: none; align-items: center; justify-content: center; flex-direction: column; padding: 1rem; }
+        .view.active { display: flex; }
+        .form-container { width: 100%; max-width: 600px; }
+        #items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem; width: 100%; }
+        .item-card { border-radius: 25px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.2); background: rgba(20, 20, 30, 0.5); backdrop-filter: blur(12px); display: flex; flex-direction: column; }
+        .item-card-logo { width: 100%; height: 200px; object-fit: cover; background-color: #111; }
+        .item-card-body { padding: 1.5rem; flex-grow: 1; display: flex; flex-direction: column; }
+        .item-card-title { font-size: 1.5rem; }
+        .item-card-footer { margin-top: auto; padding-top: 1rem; }
+        #play-modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #000; z-index: 2000; }
+        #play-modal iframe { width: 100%; height: 100%; border: none; }
+        .modal-close-btn { position: absolute; top: 20px; right: 30px; font-size: 3rem; color: white; cursor: pointer; z-index: 2001; }
+    </style>
+</head>
+<body>
+    <header class="main-header glass-box"><span class="menu-icon">&#9776;</span><h1>Neon App Hub</h1><div></div></header>
+    <div id="side-menu" class="glass-box"><span class="close-btn">&times;</span><nav><a href="#" class="nav-link" data-view="main-view">Home</a><a href="#" class="nav-link" data-view="profile-view">User Profile</a><a href="#" class="nav-link" data-view="upload-view">Upload App/Game</a></nav></div>
+    <div id="menu-backdrop"></div>
+    <main class="container">
+        <section id="main-view" class="view active"><div id="items-grid"></div></section>
+        <section id="profile-view" class="view"><div class="form-container glass-box"><h2>User Profile</h2><form id="profile-form"><input type="text" id="user-name" placeholder="Your Name" required><input type="email" id="user-email" placeholder="Your Email" required><button type="submit" class="btn btn-solid" style="width:100%">Save Profile</button></form></div></section>
+        <section id="upload-view" class="view">
+            <div class="form-container glass-box">
+                <h2>Submit for Review</h2>
+                <form id="upload-form">
+                    <label>HTML Code</label>
+                    <textarea id="upload-html" required></textarea>
+                    <label>Title</label>
+                    <input type="text" id="upload-title" required>
+                    <label>Paste Image URL (PNG, JPG)</label>
+                    <input type="url" id="upload-logo" placeholder="https://example.com/image.png" required>
+                    <label>Type</label>
+                    <select id="upload-type" required><option value="Game">Game</option><option value="App">App</option></select>
+                    <button type="submit" class="btn btn-solid" style="width:100%">Submit for Review</button>
+                </form>
+            </div>
+        </section>
+    </main>
+    <div id="play-modal"><span class="modal-close-btn">&times;</span><iframe id="play-iframe"></iframe></div>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script>
+        // --- IMPORTANT: ”9æ7”9æ7PASTE YOUR FIREBASE”9æ7”9æ7 CONFIGURATION HERE ---
+       const firebaseConfig = {
+  apiKey: "AIzaSyBK-GCZDQXV1wihUZMg5TdEiqime7yBE80",
+  authDomain: "app-store-61716.firebaseapp.com",
+  databaseURL: "https://app-store-61716-default-rtdb.firebaseio.com",
+  projectId: "app-store-61716",
+  storageBucket: "app-store-61716.firebasestorage.app",
+  messagingSenderId: "853718408081",
+  appId: "1:853718408081:web:20f5525424738c38f4d830"
+};
+
+        // --- END OF FIREBASE CONFIGURATION ---
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const uploadForm = document.getElementById('upload-form');
+            
+            // Simplified Submission Form
+            uploadForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const userName = localStorage.getItem('userName');
+                const userEmail = localStorage.getItem('userEmail');
+                
+                if (!userName || !userEmail) {
+                    alert('Please save your Name and Email in User Profile first.');
+                    switchView('profile-view');
+                    return;
+                }
+
+                const submissionData = {
+                    htmlCode: document.getElementById('upload-html').value,
+                    title: document.getElementById('upload-title').value,
+                    logoUrl: document.getElementById('upload-logo').value, // Direct URL
+                    type: document.getElementById('upload-type').value,
+                    submitterName: userName,
+                    submitterEmail: userEmail,
+                };
+                
+                database.ref('pendingSubmissions').push(submissionData)
+                    .then(() => {
+                        alert('Your submission has been sent for review!');
+                        uploadForm.reset();
+                        switchView('main-view');
+                    })
+                    .catch(error => {
+                        alert("Submission failed: " + error.message);
+                    });
+            });
+            
+            // --- Navigation and other logic (No changes from before) ---
+            const views = document.querySelectorAll('.view');
+            const navLinks = document.querySelectorAll('.nav-link');
+            const menuIcon = document.querySelector('.menu-icon');
+            const sideMenu = document.getElementById('side-menu');
+            const menuBackdrop = document.getElementById('menu-backdrop');
+            function switchView(viewId) { views.forEach(v => v.classList.remove('active')); document.getElementById(viewId).classList.add('active'); sideMenu.classList.remove('open'); menuBackdrop.classList.remove('visible'); }
+            navLinks.forEach(link => link.addEventListener('click', (e) => { e.preventDefault(); switchView(e.target.dataset.view); }));
+            menuIcon.addEventListener('click', () => { sideMenu.classList.add('open'); menuBackdrop.classList.add('visible'); });
+            document.querySelector('#side-menu .close-btn').addEventListener('click', () => { sideMenu.classList.remove('open'); menuBackdrop.classList.remove('visible'); });
+            menuBackdrop.addEventListener('click', () => { sideMenu.classList.remove('open'); menuBackdrop.classList.remove('visible'); });
+            
+            // --- Load Published Items ---
+            const itemsGrid = document.getElementById('items-grid');
+            database.ref('items').on('value', (snapshot) => {
+                itemsGrid.innerHTML = '';
+                snapshot.forEach((child) => {
+                    const item = child.val();
+                    const card = document.createElement('div');
+                    card.className = 'item-card';
+                    card.innerHTML = `
+                        <img src="${item.logoUrl}" class="item-card-logo" onerror="this.src='https://via.placeholder.com/300x200.png?text=Image+Error'">
+                        <div class="item-card-body">
+                            <h3 class="item-card-title">${item.title}</h3>
+                            <p>${item.type}</p>
+                            <div class="item-card-footer">
+                                <button class="btn btn-solid play-btn">Play</button>
+                            </div>
+                        </div>`;
+                    card.querySelector('.play-btn').onclick = () => openPlayModal(item.htmlCode);
+                    itemsGrid.prepend(card); // Show newest items first
+                });
+            });
+
+            // --- Play Modal ---
+            const playModal = document.getElementById('play-modal');
+            const playIframe = document.getElementById('play-iframe');
+            function openPlayModal(htmlCode) { playIframe.srcdoc = `<style>html,body{margin:0;padding:0;height:100vh;width:100vw;overflow:hidden;background:#000;}</style>${htmlCode}`; playModal.style.display = 'block'; }
+            playModal.querySelector('.modal-close-btn').addEventListener('click', () => { playModal.style.display = 'none'; playIframe.srcdoc = ''; });
+
+            // --- Profile Management ---
+            document.getElementById('user-name').value = localStorage.getItem('userName') || '';
+            document.getElementById('user-email').value = localStorage.getItem('userEmail') || '';
+            document.getElementById('profile-form').addEventListener('submit', (e) => { e.preventDefault(); localStorage.setItem('userName', document.getElementById('user-name').value); localStorage.setItem('userEmail', document.getElementById('user-email').value); alert('Profile Saved!'); });
+        });
+    </script>
+</body>
+</html>
